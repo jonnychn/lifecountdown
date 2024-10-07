@@ -61,7 +61,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>Number of Weeks Left on Earth</h1>
+        <h1 id="headerText">Number of Weeks Left on Earth</h1>
         <p>Enter your age: <input type="number" id="ageInput" min="0" max="80" value="37"></p>
         <button onclick="generateGrid()">Start</button>
         <div id="gridContainer"></div>
@@ -76,6 +76,14 @@
             }
         });
 
+        function updateHeaderText(age) {
+            const totalWeeks = 80 * 52;
+            const weeksLeft = totalWeeks - (age * 52);
+            const headerElement = document.getElementById("headerText");
+            const formattedWeeksLeft = weeksLeft.toLocaleString(); // Add thousand separators
+            headerElement.textContent = `You have ${formattedWeeksLeft} weeks left on Earth`;
+        }
+
         function generateGrid() {
             const age = parseInt(document.getElementById("ageInput").value);
             if (isNaN(age) || age < 0 || age > 80) {
@@ -84,6 +92,7 @@
             }
 
             localStorage.setItem("savedAge", age);
+            updateHeaderText(age);
 
             const gridContainer = document.getElementById("gridContainer");
             gridContainer.innerHTML = "";
