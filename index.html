@@ -17,41 +17,47 @@
             margin: 0;
             background-color: #f0f0f0;
         }
+  .container {
+        text-align: center;
+        margin-bottom: 20px;
+    }
 
-        .container {
-            text-align: center;
-            margin-bottom: 20px;
-        }
+    #gridContainer {
+        display: grid;
+        grid-template-columns: repeat(2, auto);
+        gap: 20px;
+        margin-top: 20px;
+        overflow-y: auto;
+        max-height: 70vh;
+    }
 
-        #gridContainer {
-            display: grid;
-            grid-template-columns: repeat(2, auto);
-            gap: 20px;
-            margin-top: 20px;
-            overflow-y: auto;
-            max-height: 70vh;
-        }
+    .block {
+        display: grid;
+        grid-template-columns: repeat(52, 10px);
+        grid-template-rows: repeat(10, 10px);
+        gap: 2px;
+        border: 1px solid #ccc;
+        padding: 5px;
+    }
 
-        .block {
-            display: grid;
-            grid-template-columns: repeat(52, 10px);
-            grid-template-rows: repeat(10, 10px);
-            gap: 2px;
-            border: 1px solid #ccc;
-            padding: 5px;
-        }
+    .week {
+        width: 10px;
+        height: 10px;
+        background-color: #ddd;
+        cursor: pointer;
+    }
 
-        .week {
-            width: 10px;
-            height: 10px;
-            background-color: #ddd;
-            cursor: pointer;
-        }
+    .week.crossed {
+        background-color: #ff4c4c;
+    }
 
-        .week.crossed {
-            background-color: #ff4c4c;
-        }
-    </style>
+    #downloadBtn {
+        margin-top: 20px;
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+    }
+</style>
 </head>
 <body>
     <div class="container">
@@ -59,81 +65,112 @@
         <p>Enter your age: <input type="number" id="ageInput" min="0" max="80" value="37"></p>
         <button onclick="generateGrid()">Start</button>
         <div id="gridContainer"></div>
+        <button id="downloadBtn" onclick="downloadImage()">Download Grid Image</button>
     </div>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            // Load existing age and marked weeks from local storage if available
-            const ageInput = document.getElementById("ageInput");
             const savedAge = localStorage.getItem("savedAge");
             if (savedAge) {
-                ageInput.value = savedAge;
+                document.getElementById("ageInput").value = savedAge;
                 generateGrid();
             }
         });
 
-        function generateGrid() {
-            const age = parseInt(document.getElementById("ageInput").value);
-            if (isNaN(age) || age < 0 || age > 80) {
-                alert("Please enter a valid age between 0 and 80.");
-                return;
-            }
+          function generateGrid() {
+        const age = parseInt(document.getElementById("ageInput").value);
+        if (isNaN(age) || age < 0 || age > 80) {
+            alert("Please enter a valid age between 0 and 80.");
+            return;
+        }
 
-            // Save the entered age to local storage
-            localStorage.setItem("savedAge", age);
+        localStorage.setItem("savedAge", age);
 
-            const gridContainer = document.getElementById("gridContainer");
-            gridContainer.innerHTML = ""; // Clear existing grid
+        const gridContainer = document.getElementById("gridContainer");
+        gridContainer.innerHTML = "";
 
-            const totalWeeks = 80 * 52; // Total weeks if living until 80
-            const weeksPassed = age * 52;
+        const totalWeeks = 80 * 52;
+        const weeksPassed = age * 52;
 
-            for (let block = 0; block < 8; block++) {
-                const blockDiv = document.createElement("div");
-                blockDiv.classList.add("block");
+        for (let block = 0; block < 8; block++) {
+            const blockDiv = document.createElement("div");
+            blockDiv.classList.add("block");
 
-                for (let week = 0; week < 520; week++) {
-                    const weekDiv = document.createElement("div");
-                    weekDiv.classList.add("week");
+            for (let week = 0; week < 520; week++) {
+                const weekDiv = document.createElement("div");
+                weekDiv.classList.add("week");
 
-                    const weekNumber = block * 520 + week;
-                    if (weekNumber < weeksPassed) {
-                        weekDiv.classList.add("crossed");
-                    }
-
-                    weekDiv.onclick = () => toggleWeek(weekNumber, weekDiv);
-                    blockDiv.appendChild(weekDiv);
-                }
-
-                gridContainer.appendChild(blockDiv);
-            }
-
-            // Load the crossed weeks from local storage
-            const crossedWeeks = JSON.parse(localStorage.getItem("crossedWeeks") || "[]");
-            crossedWeeks.forEach(week => {
-                const weekDiv = gridContainer.querySelector(`.week:nth-child(${week + 1})`);
-                if (weekDiv) {
+                const weekNumber = block * 520 + week;
+                if (weekNumber < weeksPassed) {
                     weekDiv.classList.add("crossed");
                 }
-            });
-        }
 
-        function toggleWeek(weekNumber, weekDiv) {
-            weekDiv.classList.toggle("crossed");
-
-            // Update crossed weeks in local storage
-            const crossedWeeks = JSON.parse(localStorage.getItem("crossedWeeks") || "[]");
-            if (weekDiv.classList.contains("crossed")) {
-                if (!crossedWeeks.includes(weekNumber)) {
-                    crossedWeeks.push(weekNumber);
-                }
-            } else {
-                const index = crossedWeeks.indexOf(weekNumber);
-                if (index > -1) {
-                    crossedWeeks.splice(index, 1);
-                }
+                weekDiv.onclick = () => toggleWeek(weekNumber, weekDiv);
+                blockDiv.appendChild(weekDiv);
             }
-            localStorage.setItem("crossedWeeks", JSON.stringify(crossedWeeks));
+
+            gridContainer.appendChild(blockDiv);
         }
-    </script>
+
+        const crossedWeeks = JSON.parse(localStorage.getItem("crossedWeeks") || "[]");
+        crossedWeeks.forEach(week => {
+            const weekDiv = gridContainer.querySelector(`.week:nth-child(${week + 1})`);
+            if (weekDiv) {
+                weekDiv.classList.add("crossed");
+            }
+        });
+    }
+
+    function toggleWeek(weekNumber, weekDiv) {
+        weekDiv.classList.toggle("crossed");
+
+        const crossedWeeks = JSON.parse(localStorage.getItem("crossedWeeks") || "[]");
+        if (weekDiv.classList.contains("crossed")) {
+            if (!crossedWeeks.includes(weekNumber)) {
+                crossedWeeks.push(weekNumber);
+            }
+        } else {
+            const index = crossedWeeks.indexOf(weekNumber);
+            if (index > -1) {
+                crossedWeeks.splice(index, 1);
+            }
+        }
+        localStorage.setItem("crossedWeeks", JSON.stringify(crossedWeeks));
+    }
+
+    function downloadImage() {
+        const gridContainer = document.getElementById("gridContainer");
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+
+        // Set canvas size to match the grid container
+        canvas.width = gridContainer.offsetWidth;
+        canvas.height = gridContainer.offsetHeight;
+
+        // Draw white background
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Draw each week block
+        gridContainer.querySelectorAll(".block").forEach((block, blockIndex) => {
+            const blockX = (blockIndex % 2) * (canvas.width / 2);
+            const blockY = Math.floor(blockIndex / 2) * (canvas.height / 4);
+
+            block.querySelectorAll(".week").forEach((week, weekIndex) => {
+                const x = blockX + (weekIndex % 52) * 12;
+                const y = blockY + Math.floor(weekIndex / 52) * 12;
+
+                ctx.fillStyle = week.classList.contains("crossed") ? "#ff4c4c" : "#ddd";
+                ctx.fillRect(x, y, 10, 10);
+            });
+        });
+
+        // Convert canvas to image and trigger download
+        const image = canvas.toDataURL("image/png");
+        const link = document.createElement("a");
+        link.href = image;
+        link.download = "life_countdown_grid.png";
+        link.click();
+    }
+</script>
 </body>
 </html>
